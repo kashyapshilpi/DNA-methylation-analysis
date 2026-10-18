@@ -1,0 +1,4 @@
+sample,fastq_1,fastq_2,condition
+CTRL_1,https://raw.githubusercontent.com/nf-core/test-datasets/methylseq/testdata/SRR389222_sub1.fastq.gz,,control
+CTRL_2,https://raw.githubusercontent.com/nf-core/test-datasets/methylseq/testdata/SRR389222_sub2.fastq.gz,,control
+TREAT_1,https://raw.githubusercontent.com/nf-core/test-datasets/methylseq/testdata/SRR389222_sub3.fastq.gz,,treatment
