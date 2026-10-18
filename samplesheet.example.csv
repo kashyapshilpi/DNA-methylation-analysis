@@ -1,0 +1,7 @@
+sample_id,coverage_file,treatment
+shoot_1,results/methylation/SRR2102342_pe.deduplicated.bismark.cov.gz,1
+shoot_2,results/methylation/SRR2102343_pe.deduplicated.bismark.cov.gz,1
+shoot_3,results/methylation/SRR2102344_pe.deduplicated.bismark.cov.gz,1
+non_vascular_1,results/methylation/SRR2102348_pe.deduplicated.bismark.cov.gz,0
+non_vascular_2,results/methylation/SRR2102349_pe.deduplicated.bismark.cov.gz,0
+non_vascular_3,results/methylation/SRR2102350_pe.deduplicated.bismark.cov.gz,0

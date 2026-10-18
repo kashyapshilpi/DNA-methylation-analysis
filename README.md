@@ -1,70 +1,77 @@
-# DNA Methylation Analysis Repository
+# DNA Methylation Analysis (Bisulfite-seq)
 
-Welcome to the DNA Methylation Analysis repository! This repository contains scripts and documentation for the analysis of DNA methylation data. DNA methylation plays a crucial role in regulating gene expression and is an essential mechanism in various biological processes. This project provides a comprehensive guide to the analysis of DNA methylation data, including preprocessing, quality control, differential methylation analysis, and visualization.
+Paired-end whole-genome bisulfite sequencing workflow, from raw reads to differentially methylated CpGs and regions with gene and CpG-island annotation.
 
-## Table of Contents
+> Developed during my MSc dissertation at CSIR–IHBT. Kept as a reference implementation; not actively maintained.
 
-1. [Introduction](#introduction)
-2. [Dependencies](#dependencies)
-3. [Data](#data)
-4. [Analysis Workflow](#analysis-workflow)
-5. [Usage](#usage)
-6. [Results](#results)
-7. [License](#license)
-8. [Contributing](#contributing)
+## Workflow
 
-## Introduction
+```
+FASTQ ─► FastQC ─► Trimmomatic ─► Bismark (Bowtie2) ─► deduplicate_bismark
+      ─► bismark_methylation_extractor ─► methylKit
+          ├─ per-sample QC, correlation, clustering, PCA
+          ├─ DMCs (overdispersion-corrected χ² test)
+          ├─ DMRs (1 kb tiles)
+          └─ annotation: gene parts, nearest TSS, CpG islands / shores
+```
 
-DNA methylation is an epigenetic modification that involves the addition of a methyl group to the DNA molecule. It plays a critical role in gene regulation and can provide insights into various biological processes and diseases. This repository offers a step-by-step guide to analyzing DNA methylation data, from raw data processing to advanced analysis.
+## Repository contents
 
-## Dependencies
+| File | Purpose |
+|---|---|
+| `01_bismark_preprocess.sh` | QC, trimming, alignment, deduplication, methylation extraction, MultiQC report |
+| `02_methylkit_dmc.R` | Differential methylation, plots and annotation with methylKit |
+| `GeneDMRs.R` | Alternative DMR analysis with GeneDMRs |
+| `samplesheet.example.csv` | Example sample sheet for step 2 |
 
-Before running the DNA methylation analysis pipeline, ensure you have the following tools and software installed on your system:
+## Requirements
 
-- Bismark (version 0.15.0): A tool for mapping bisulfite-converted DNA sequences and methylation calling.
-- GeneDMRs (version 1.1.0): A package for identifying differentially methylated regions.
-- R (version >= 3.0): A programming language for statistical computing and graphics.
-- Additional R packages (e.g., `methylKit`, `minfi`, `DMRcate`) for advanced analysis and visualization.
+- FastQC, MultiQC
+- Trimmomatic 0.39
+- Bismark 0.24 with Bowtie2
+- R ≥ 4.1 with `methylKit`, `genomation`, `GenomicRanges` (Bioconductor)
 
-Make sure to update the versions with the appropriate ones you are using.
+Example install with conda:
 
-## Data
-
-The raw DNA methylation data used in this analysis is not included in this repository. Please ensure you have access to the data and place it in the appropriate input directory before running the pipeline.
-
-## Analysis Workflow
-
-The analysis pipeline can be divided into several key steps:
-
-1. **Preprocessing**: Process raw DNA methylation data, including quality control and alignment to a reference genome.
-2. **Methylation Calling**: Call methylation levels at individual CpG sites.
-3. **Differential Methylation Analysis**: Identify differentially methylated CpG sites or regions between experimental conditions.
-4. **Functional Analysis**: Associate differentially methylated regions with genes and perform functional enrichment analysis.
-5. **Visualization**: Visualize methylation patterns, differentially methylated regions, and results of functional analysis.
+```bash
+conda create -n methylation -c bioconda -c conda-forge \
+    fastqc multiqc trimmomatic bismark bowtie2 \
+    bioconductor-methylkit bioconductor-genomation
+```
 
 ## Usage
 
-To perform DNA methylation analysis, follow these steps:
+**Step 1: preprocessing.** List sample IDs in `samples.txt`, one per line, with reads at `data/raw/<ID>/<ID>_1.fastq.gz` and `_2.fastq.gz`:
 
-1. Clone this repository to your local machine: `git clone https://github.com/kashyapshilpi/DNA-methylation-analysis.git`
-2. Place the raw DNA methylation data in the appropriate input directory.
-3. Install the required dependencies listed in the "Dependencies" section.
-4. Modify the configuration file if necessary to specify parameters and options.
-5. Execute the analysis script: `bash methylkit.sh`, `bash Dna_methylation_script.sh`, `Rscript GeneDMARs.R`, `Rscript MethylKit_Script_15032023.R`
-6. The results, including plots and analysis outputs, will be generated in the output directory.
+```bash
+GENOME_DIR=ref/genome ADAPTERS=TruSeq3-PE.fa THREADS=16 \
+    bash 01_bismark_preprocess.sh samples.txt
+```
 
-## Results
+Outputs land in `results/`. Coverage files for methylKit are written to `results/methylation/*.bismark.cov.gz`, and the combined QC report to `results/multiqc/`.
 
-The results of the DNA methylation analysis will be stored in the output directory. This will include methylation profiles, differential methylation analysis results, visualization plots, and functional analysis outcomes.
+**Step 2: differential methylation.** Fill in a sample sheet (see `samplesheet.example.csv`), then:
+
+```bash
+ASSEMBLY=Sorghum_bicolor_NCBIv3 CORES=4 \
+    Rscript 02_methylkit_dmc.R samplesheet.csv genes.bed cpg_islands.bed results/methylkit
+```
+
+## Outputs (`results/methylkit/`)
+
+| File | Contents |
+|---|---|
+| `per_sample_qc.pdf` | Methylation and coverage distributions per sample |
+| `sample_similarity.pdf` | Correlation matrix, hierarchical clustering, PCA |
+| `DMC_all.tsv`, `DMC_hyper.tsv`, `DMC_hypo.tsv` | Differentially methylated CpGs (≥25% difference, q < 0.01) |
+| `DMR_1kb_tiles.tsv` | Differentially methylated 1 kb regions |
+| `DMC_nearest_TSS.tsv` | Nearest transcript start site for each DMC |
+| `DMC_annotation.pdf`, `DMC_per_chromosome.pdf` | Annotation and per-chromosome summaries |
+
+## Data
+
+Raw data are not included. The analysis was run on public bisulfite-seq data from NCBI BioProject PRJNA289892.
 
 ## License
 
-This project is licensed under the [MIT License](license.txt).
-
-## Contributing
-
-If you wish to contribute to this project, feel free to open issues, submit pull requests, or suggest improvements. We welcome your contributions!
-
-Thank you for using this DNA Methylation Analysis repository. If you have any questions or encounter any issues, please don't hesitate to contact us.
-
-Happy analyzing!
+MIT. See [licence.txt](licence.txt).
