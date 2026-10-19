@@ -11,7 +11,7 @@ process MULTIQC {
 
     script:
     """
-    multiqc --force --title 'DNA methylation pipeline' .
+    multiqc --force .
     """
 
     stub:
