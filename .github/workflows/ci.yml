@@ -50,6 +50,18 @@ jobs:
           test -s results/bismark_align/CTRL_1_SE_report.txt
           test -s results/multiqc/multiqc_report.html
           head -5 results/methylkit/CpG_all_tested.tsv
+      - name: Report Nextflow errors as annotations
+        if: failure()
+        run: |
+          # Annotations are visible on the run page without signing in
+          grep -E "ERROR|Caused by:|Command exit status|Error executing process|Failed to create Conda" .nextflow.log | head -20 \
+            | while IFS= read -r line; do echo "::error title=Nextflow::${line}"; done || true
+          for f in $(grep -l . work/*/*/.exitcode 2>/dev/null); do
+            d=$(dirname "$f")
+            if [ "$(cat "$f")" != "0" ]; then
+              echo "::error title=Failed task $(head -c 200 "$d/.command.sh" | tr '\n' ' ')::$(tail -n 15 "$d/.command.err" | tr '\n' '|')"
+            fi
+          done || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
