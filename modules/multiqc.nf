@@ -1,4 +1,5 @@
 process MULTIQC {
+    // Why: Collect all QC results into one HTML report.
     label 'process_low'
     conda 'bioconda::multiqc=1.25'
 

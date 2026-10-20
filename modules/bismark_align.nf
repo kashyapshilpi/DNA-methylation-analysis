@@ -1,4 +1,5 @@
 process BISMARK_ALIGN {
+    // Why: Align bisulfite reads to the converted genome (normal aligners would reject the C/T mismatches).
     tag "${meta.id}"
     label 'process_high'
     conda 'bioconda::bismark=0.24'

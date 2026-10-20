@@ -1,4 +1,5 @@
 process FASTQC {
+    // Why: Check read quality before and after trimming (adapters, low-quality tails).
     tag "${meta.id}"
     label 'process_low'
     conda 'bioconda::fastqc=0.12.1'

@@ -1,4 +1,5 @@
 process BISMARK_EXTRACT {
+    // Why: Call methylation at every cytosine: methylated vs unmethylated read counts per CpG.
     tag "${meta.id}"
     label 'process_medium'
     conda 'bioconda::bismark=0.24'

@@ -1,4 +1,5 @@
 process BISMARK_DEDUP {
+    // Why: Remove PCR duplicates so one DNA fragment does not count as many methylation calls.
     tag "${meta.id}"
     label 'process_medium'
     conda 'bioconda::bismark=0.24'

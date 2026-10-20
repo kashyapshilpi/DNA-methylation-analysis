@@ -60,13 +60,13 @@ workflow {
     TRIMMOMATIC(ch_reads, adapters_pe, adapters_se)
     FASTQC_TRIMMED(TRIMMOMATIC.out.reads)
 
-    // Bisulfite alignment and methylation calling
+    // Bisulfite alignment and methylation calling (Bismark handles the C->T conversion)
     BISMARK_GENOMEPREP(fasta)
     BISMARK_ALIGN(TRIMMOMATIC.out.reads, BISMARK_GENOMEPREP.out.index)
     BISMARK_DEDUP(BISMARK_ALIGN.out.bam)
     BISMARK_EXTRACT(BISMARK_DEDUP.out.bam)
 
-    // Differential methylation across all samples
+    // Differential methylation: all samples are compared together, so collect them first
     ch_cov = BISMARK_EXTRACT.out.coverage
         .toList()
         .map { items -> [items.collect { it[0] }, items.collect { it[1] }] }

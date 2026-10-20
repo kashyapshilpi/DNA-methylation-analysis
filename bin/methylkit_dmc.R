@@ -69,7 +69,8 @@ for (i in seq_along(obj)) {
 invisible(dev.off())
 
 # ---- Filter, normalise, merge ----------------------------------------------
-# Drop extreme-coverage CpGs (likely PCR artefacts), then equalise library depth.
+# Very high coverage usually means PCR artefacts or repeats, so drop the top 0.1%.
+# Then equalise sequencing depth so samples are comparable.
 filt <- filterByCoverage(obj, lo.count = min_cov, hi.perc = 99.9)
 filt <- normalizeCoverage(filt)
 meth <- unite(filt, destrand = FALSE, mc.cores = cores)
@@ -87,7 +88,8 @@ if (nrow(ss) >= 3) {
 }
 
 # ---- Differentially methylated CpGs (DMCs) -----------------------------------
-# Overdispersion correction needs replicates in both groups.
+# Biological replicates vary more than a simple binomial model expects (overdispersion);
+# correcting for it avoids many false positives, but needs replicates in both groups.
 od <- if (min(group_sizes) >= 2) "MN" else "none"
 message("Overdispersion correction: ", od)
 diff <- calculateDiffMeth(meth, overdispersion = od, test = if (od == "MN") "Chisq" else "F",
@@ -110,6 +112,7 @@ if (nrow(dmc) > 0) {
 }
 
 # ---- Differentially methylated regions (tiles) -------------------------------
+# Single CpGs are noisy; summing them in windows finds regions that change together.
 safely("DMR tiling", {
     tiles  <- tileMethylCounts(filt, win.size = tile, step.size = tile, cov.bases = min_cov)
     meth_t <- unite(tiles, destrand = FALSE, mc.cores = cores)

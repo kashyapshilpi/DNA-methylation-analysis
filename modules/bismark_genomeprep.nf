@@ -1,4 +1,5 @@
 process BISMARK_GENOMEPREP {
+    // Why: Make C->T and G->A converted copies of the genome, since bisulfite turns unmethylated C into T.
     tag "${fasta.simpleName}"
     label 'process_high'
     conda 'bioconda::bismark=0.24'

@@ -1,4 +1,5 @@
 process METHYLKIT {
+    // Why: Find CpGs and regions whose methylation differs between conditions.
     label 'process_medium'
     conda 'bioconda::bioconductor-methylkit bioconda::bioconductor-genomation'
 
